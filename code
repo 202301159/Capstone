@@ -172,13 +172,6 @@ int main() {
         }
 
         ofolder.close();
-
-        if (deletionreasons.empty()) {
-            cout << "No file deleted." << endl;
-        } else {
-            cout << "Files deleted successfully." << endl;
-            cout << "Deletion Reasons:" << endl << deletionreasons << endl;
-        }
         
         // Giving output to the console (i.e. Monitor, User)
         if (deletionreasons.empty()) {
