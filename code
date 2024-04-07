@@ -6,9 +6,6 @@
 #include <sstream>
 #include <ctime>
 
-#define initialYear 1900 // Initial year for world clock
-
-#define secondsinmonth 30.44 * 24 * 3600 // Average Seconds in a Month
 
 #define MAX_FILES 100
 
@@ -33,11 +30,11 @@ bool isFileOlderThanNMonths(const string &DateString, int numMonths) {
     time_t currentTime = time(nullptr);
     tm fileCreationTime = {0};
 
-    fileCreationTime.tm_year = Year - initialYear;
+    fileCreationTime.tm_year = Year - 1900;
     fileCreationTime.tm_mon = Month - 1;
     fileCreationTime.tm_mday = Day;
     time_t fileCreationTimestamp = mktime(&fileCreationTime);
-
+    double secondsinmonth = 30.44*24*3600;
     double differenceinsecond = difftime(currentTime, fileCreationTimestamp);
     int differenceinmonth = differenceinsecond / secondsinmonth;
 
