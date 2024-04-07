@@ -1,1 +1,200 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <ctime>
 
+#define initialYear 1900 // Initial year for world clock
+
+#define secondsinmonth 30.44 * 24 * 3600 // Average Seconds in a Month
+
+#define MAX_FILES 100
+
+using namespace std;
+
+struct FileData {
+    string name;
+    string date;
+    int size;
+    int accesscount;
+};
+
+// The function to check whether if the File is older than N months or not?
+bool isFileOlderThanNMonths(const string &DateString, int numMonths) {
+    istringstream fileDateStream(DateString);
+    int Day, Month, Year;
+    char buffer; // To store the useless Slash (/) character
+
+    //                 DD       /       MM         /      YYYY
+    fileDateStream >> Day >> buffer >> Month >> buffer >> Year;
+
+    time_t currentTime = time(nullptr);
+    tm fileCreationTime = {0};
+
+    fileCreationTime.tm_year = Year - initialYear;
+    fileCreationTime.tm_mon = Month - 1;
+    fileCreationTime.tm_mday = Day;
+    time_t fileCreationTimestamp = mktime(&fileCreationTime);
+
+    double differenceinsecond = difftime(currentTime, fileCreationTimestamp);
+    int differenceinmonth = differenceinsecond / secondsinmonth;
+
+    // returning true and false
+    if (differenceinmonth >= numMonths){
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/*
+Function to remove that perticular file/files which does not met the criteria from the fname (file)
+and returns the reasons why those files needed to be removed...
+*/
+string deletefiles(FileData files[], int &count, int N, int M) {
+    string deletereasons;
+
+    for (int i = 0; i < count;) {
+        bool newcopyavailable = false; // For Redundant Files (i.e. a newer copy is present)
+
+        for (int j = 0; j < count; ++j) {
+            if (i != j && files[i].name == files[j].name && files[i].date < files[j].date) {
+                newcopyavailable = true;
+                break;
+            }
+        }
+        
+        // If Any of the criteria is not satisfied then Delete the File
+        if (isFileOlderThanNMonths(files[i].date, N) || files[i].size == 0 || newcopyavailable || files[i].accesscount < M) {
+            string deletionReason = files[i].name + " deleted: ";
+            bool addComma = false;
+
+            if (isFileOlderThanNMonths(files[i].date, N)) {
+                deletionReason += "Older than " + to_string(N) + " months";
+                addComma = true;
+            }
+            if (files[i].size == 0) {
+                if (addComma) {
+                    deletionReason += ", ";
+                }
+                deletionReason += "Size is 0kb";
+                addComma = true;
+            }
+            if (newcopyavailable) {
+                if (addComma) {
+                    deletionReason += ", ";
+                }
+                deletionReason += "Newer version present";
+                addComma = true;
+            }
+            if (files[i].accesscount < M) {
+                if (addComma) {
+                    deletionReason += ", ";
+                }
+                deletionReason += "Accessed less than " + to_string(M) + " times";
+            }
+            deletereasons += deletionReason + ".\n";
+
+            // To shift the elements to the left to fill the gap
+            for (int j = i; j < count - 1; ++j) {
+                files[j] = files[j + 1];
+            }
+            --count; // If the file needs to be deleted, we will decreament the count
+        } else {
+            ++i; // If the file meets the criteria, we will go to the next element (file)
+        }
+    }
+    return deletereasons; // Returning the reasons why we deleted those files
+}
+int main() {
+    string choice; // User's choice
+
+    // We will use do-while loop to ask user whether if he wants to continue the same or not?
+    do {
+        cout << "Enter Folder Name: ";
+        string fname;
+        int N, M; // N months, M time Accessed
+        cin >> fname; // getting folder name from user.
+
+        cout << endl
+            << "Enter the value of months (N): ";
+        cin >> N;
+
+        cout << endl
+            << "Enter the value of accesscount (M): ";
+        cin >> M;
+
+        int count = 0;
+        string temp;
+
+        // We had two option: .xls or .txt file, in which we decided to code up with .txt file
+        ifstream folder(fname);
+
+        while (folder.eof() == 0) {
+            getline(folder, temp);
+            count++;
+        }
+
+        folder.close();
+        folder.open(fname);
+        FileData files[count];
+
+        for (int i = 0; folder.eof() == 0; i++) {
+            string temp1, temp2, str;
+            getline(folder, str);
+            istringstream iss(str);
+            iss >> files[i].name >> files[i].date;
+
+            string sizeStr;
+            iss >> sizeStr;
+
+            // To extract the size value from the size string
+            size_t pos = sizeStr.find("kb");
+            if (pos != string::npos) {
+                files[i].size = stoi(sizeStr.substr(0, pos));
+            } else {
+                // If "kb" is not found, assume the size is given directly
+                files[i].size = stoi(sizeStr);
+            }
+
+            iss >> files[i].accesscount;
+        }
+
+        folder.close();
+        string deletionreasons = deletefiles(files, count, N, M);
+        ofstream ofolder(fname,std::ios::trunc);
+        
+        // Editing (Overwriting) the folder's information holding txt File
+        for(int i=0;i<count;i++) {
+            ofolder << files[i].name << " " <<files[i].date <<" "<< files[i].size <<"kb "<< files[i].accesscount << endl;
+        }
+
+        ofolder.close();
+
+        if (deletionreasons.empty()) {
+            cout << "No file deleted." << endl;
+        } else {
+            cout << "Files deleted successfully." << endl;
+            cout << "Deletion Reasons:" << endl << deletionreasons << endl;
+        }
+        
+        // Giving output to the console (i.e. Monitor, User)
+        if (deletionreasons.empty()) {
+            cout << "No file deleted." << endl;
+        } else {
+            cout << "Files deleted successfully." << endl;
+            cout << "Deletion Reasons:" << endl
+                 << deletionreasons;
+        }
+        cout << endl;
+
+        // Getting User Choice whether if he wants to repeat the operation or not?
+        cout << "Do you want to continue? (yes/no): ";
+
+        cin >> choice;
+    } while (choice == "yes" || choice == "Yes" || choice == "YES");
+
+    return 0;
+}
