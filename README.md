@@ -6,8 +6,8 @@ In this problem, we also gave output to the console about the reason why those f
 
 WORK Distribution:
 
-Tirth Kheni (202301007): Raw Code
-Dip Zadafiya (202301159): Beautified the Code and reduced space complexity
-Data Structure & Time analysis was done by Harsh Kakadiya (202301052)
-and input files and format was decided by Jenish Vasani (202301057)
+Tirth Kheni (202301007): Raw Code.
+Dip Zadafiya (202301159): Beautified the Code and reduced space complexity.
+Data Structure & Time analysis was done by Harsh Kakadiya (202301052).
+and input files and format was decided by Jenish Vasani (202301057).
 Also every member contibuted to improve code constantly.
